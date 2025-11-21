@@ -25,3 +25,20 @@ pub struct JeuVideo {
     #[serde(default)]
     pub favori: bool,
 }
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GameStats {
+    pub total_jeux: i64,
+    pub temps_total_heures: f64,
+    pub jeux_termines: i64,
+    pub score_moyen: Option<f64>,
+}
+
+
+#[derive(Deserialize)]
+pub struct SearchParams {
+    pub genre: Option<String>,
+    pub plateforme: Option<String>,
+    pub titre: Option<String>,
+}

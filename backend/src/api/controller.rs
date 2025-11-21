@@ -1,6 +1,6 @@
 use actix_web::{get, post, put, delete, web, HttpResponse, Responder};
 use crate::db::AppState;
-use crate::models::JeuVideo;
+use crate::models::{JeuVideo, SearchParams, GameStats};
 use mongodb::{bson::doc, Collection};
 use mongodb::bson::oid::ObjectId;
 use mongodb::bson::to_document;
@@ -27,28 +27,26 @@ pub async fn health_check(data: web::Data<AppState>) -> impl Responder {
 }
 
 #[get("/games")]
-pub async fn get_all_games(data: web::Data<AppState>) -> impl Responder {
-    let collection: Collection<JeuVideo> = data.db.collection("games"); 
-    match collection.find(doc! {}).await {
+pub async fn get_all_games(data: web::Data<AppState>, params: web::Query<SearchParams>) -> impl Responder {
+    let collection: Collection<JeuVideo> = data.db.collection("games");
+    let mut filter = doc! {};
+    if let Some(genre) = &params.genre {
+        filter.insert("genre", genre);
+    }
+    if let Some(plateforme) = &params.plateforme {
+        filter.insert("plateforme", plateforme);
+    }
+    if let Some(titre) = &params.titre {
+        filter.insert("titre", doc! { "$regex": titre, "$options": "i" });
+    }
+    match collection.find(filter).await {
         Ok(cursor) => {
             match cursor.try_collect::<Vec<JeuVideo>>().await {
                 Ok(games) => HttpResponse::Ok().json(games),
-                Err(e) => {
-                    eprintln!("Erreur lors de la collection des jeux : {}", e);
-                    HttpResponse::InternalServerError().json(serde_json::json!({
-                        "error": "Failed to collect games",
-                        "details": e.to_string()
-                    }))
-                }
+                Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
             }
         }
-        Err(e) => {
-            eprintln!("Erreur lors de la récupération des jeux : {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to fetch games",
-                "details": e.to_string()
-            }))
-        }
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
 
