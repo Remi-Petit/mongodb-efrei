@@ -206,3 +206,27 @@ pub async fn toggle_favorite(data: web::Data<AppState>, path: web::Path<String>)
         Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
+
+
+
+use actix_web::http::header::ContentDisposition; // Nécessaire pour le téléchargement
+
+#[get("/games/export")]
+pub async fn export_games(data: web::Data<AppState>) -> impl Responder {
+    let collection: Collection<JeuVideo> = data.db.collection("games");
+    match collection.find(doc! {}).await {
+        Ok(cursor) => {
+            match cursor.try_collect::<Vec<JeuVideo>>().await {
+                Ok(games) => {
+                    let json_data = serde_json::to_string_pretty(&games).unwrap_or_default();
+                    HttpResponse::Ok()
+                        .content_type("application/json")
+                        .insert_header(actix_web::http::header::ContentDisposition::attachment("games_export.json"))
+                        .body(json_data)
+                }
+                Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
+            }
+        }
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
+    }
+}
