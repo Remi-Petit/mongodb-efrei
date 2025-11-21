@@ -10,5 +10,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .service(controller::create_game)
             .service(controller::update_game)
             .service(controller::delete_game)
+            .service(controller::get_stats)
     );
 }

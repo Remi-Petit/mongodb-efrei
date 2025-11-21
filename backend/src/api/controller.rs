@@ -139,3 +139,43 @@ pub async fn create_game(data: web::Data<AppState>, body: web::Json<JeuVideo>) -
         }
     }
 }
+
+
+#[get("/stats")]
+pub async fn get_stats(data: web::Data<AppState>) -> impl Responder {
+    let collection: Collection<JeuVideo> = data.db.collection("games");
+    let pipeline = vec![
+        doc! {
+            "$group": {
+                "_id": null,
+                "total_jeux": { "$sum": 1 },
+                "temps_total_heures": { "$sum": "$temps_jeu_heures" },
+                "jeux_termines": { 
+                    "$sum": { "$cond": ["$termine", 1, 0] } 
+                },
+                "score_moyen": { "$avg": "$metacritic_score" }
+            }
+        }
+    ];
+    match collection.aggregate(pipeline).await {
+        Ok(mut cursor) => {
+            if let Ok(Some(doc)) = cursor.try_next().await {
+                let stats = serde_json::json!({
+                    "total_jeux": doc.get_i32("total_jeux").unwrap_or(0),
+                    "temps_total_heures": doc.get_f64("temps_total_heures").unwrap_or(0.0),
+                    "jeux_termines": doc.get_i32("jeux_termines").unwrap_or(0),
+                    "score_moyen": doc.get_f64("score_moyen").ok(),
+                });
+                HttpResponse::Ok().json(stats)
+            } else {
+                HttpResponse::Ok().json(serde_json::json!({
+                    "total_jeux": 0,
+                    "temps_total_heures": 0,
+                    "jeux_termines": 0,
+                    "score_moyen": null
+                }))
+            }
+        }
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
+    }
+}
