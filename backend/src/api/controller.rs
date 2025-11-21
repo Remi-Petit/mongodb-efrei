@@ -1,10 +1,11 @@
-use actix_web::{get, put, delete, web, HttpResponse, Responder};
+use actix_web::{get, post, put, delete, web, HttpResponse, Responder};
 use crate::db::AppState;
 use crate::models::JeuVideo;
 use mongodb::{bson::doc, Collection};
 use mongodb::bson::oid::ObjectId;
 use mongodb::bson::to_document;
 use futures::stream::TryStreamExt;
+use chrono::Utc;
 
 #[get("/health")]
 pub async fn health_check(data: web::Data<AppState>) -> impl Responder {
@@ -115,5 +116,28 @@ pub async fn delete_game(data: web::Data<AppState>, path: web::Path<String>) -> 
             }
         }
         Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
+    }
+}
+
+
+#[post("/games")]
+pub async fn create_game(data: web::Data<AppState>, body: web::Json<JeuVideo>) -> impl Responder {
+    let collection: Collection<JeuVideo> = data.db.collection("games");
+    let mut new_game = body.into_inner();
+    new_game.id = Some(ObjectId::new());
+    let current_time = Utc::now().to_rfc3339();
+    new_game.date_ajout = current_time.clone();
+    new_game.date_modification = current_time;
+    match collection.insert_one(new_game).await {
+        Ok(result) => {
+            HttpResponse::Created().json(serde_json::json!({
+                "message": "Jeu ajouté avec succès",
+                "id": result.inserted_id.as_object_id().unwrap().to_string()
+            }))
+        }
+        Err(e) => {
+            eprintln!("Erreur lors de l'ajout du jeu : {}", e);
+            HttpResponse::InternalServerError().json(e.to_string())
+        }
     }
 }

@@ -10,7 +10,8 @@
     "temps_jeu_heures": 150,
     "termine": true,
     "date_ajout": "2023-01-15T10:00:00.000Z",
-    "date_modification": "2023-01-15T10:00:00.000Z"
+    "date_modification": "2023-01-15T10:00:00.000Z",
+    "favori": true
   },
   {
     "titre": "Cyberpunk 2077",
@@ -23,7 +24,8 @@
     "temps_jeu_heures": 65,
     "termine": false,
     "date_ajout": "2023-08-20T14:30:00.000Z",
-    "date_modification": "2024-05-10T09:15:00.000Z"
+    "date_modification": "2024-05-10T09:15:00.000Z",
+    "favori": true
   },
   {
     "titre": "Elden Ring",
@@ -36,7 +38,8 @@
     "temps_jeu_heures": 120,
     "termine": true,
     "date_ajout": "2022-03-01T18:00:00.000Z",
-    "date_modification": "2022-03-01T18:00:00.000Z"
+    "date_modification": "2022-03-01T18:00:00.000Z",
+    "favori": false
   },
   {
     "titre": "Celeste",
@@ -49,7 +52,8 @@
     "temps_jeu_heures": 18,
     "termine": true,
     "date_ajout": "2024-02-10T12:00:00.000Z",
-    "date_modification": "2024-02-10T12:00:00.000Z"
+    "date_modification": "2024-02-10T12:00:00.000Z",
+    "favori": false
   },
   {
     "titre": "Hades",
@@ -62,6 +66,7 @@
     "temps_jeu_heures": 80,
     "termine": false,
     "date_ajout": "2023-05-25T09:45:00.000Z",
-    "date_modification": "2023-11-05T16:20:00.000Z"
+    "date_modification": "2023-11-05T16:20:00.000Z",
+    "favori": false
   }
 ]

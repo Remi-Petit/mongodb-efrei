@@ -18,6 +18,10 @@ pub struct JeuVideo {
     pub metacritic_score: Option<i32>, 
     pub temps_jeu_heures: Option<f64>, 
     pub termine: bool,
+    #[serde(default)]
     pub date_ajout: String,
+    #[serde(default)]
     pub date_modification: String,
+    #[serde(default)]
+    pub favori: bool,
 }
