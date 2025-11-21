@@ -1,17 +1,15 @@
-use mongodb::{Client, options::ClientOptions};
+use mongodb::{Client, Database, options::ClientOptions};
 use std::env;
 use std::io::{Error, ErrorKind};
 
 #[derive(Clone)]
 pub struct AppState {
-    pub db_client: Client,
+    pub db: Database,
 }
 
-pub async fn init() -> std::io::Result<Client> {
+pub async fn init() -> std::io::Result<Database> {
     let client_uri = env::var("MONGODB_URI")
         .expect("MONGODB_URI n'est pas défini dans le .env");
-
-    println!("{}", client_uri);
 
     let client_options = ClientOptions::parse(&client_uri).await.map_err(|e| {
         Error::new(ErrorKind::Other, format!("Invalid Mongo URI: {}", e))
@@ -21,7 +19,10 @@ pub async fn init() -> std::io::Result<Client> {
         Error::new(ErrorKind::Other, format!("Client init failed: {}", e))
     })?;
 
-    println!("✅ Connexion à MongoDB initialisée avec succès.");
+    println!("✅ Connexion au serveur initialisée.");
+    
+    let db = client.database("mongo"); 
+    println!("📂 Base de données active : mongo");
 
-    Ok(client)
+    Ok(db)
 }

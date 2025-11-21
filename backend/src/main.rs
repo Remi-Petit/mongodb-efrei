@@ -5,6 +5,7 @@ use dotenv::dotenv;
 // Déclaration des modules
 mod db;
 mod api;
+mod models;
 
 use db::AppState;
 
@@ -18,8 +19,8 @@ async fn main() -> std::io::Result<()> {
     let server_address = format!("{}:{}", host, port);
 
     // Initialisation DB
-    let client = db::init().await?;
-    let app_state = AppState { db_client: client };
+    let database = db::init().await?; 
+    let app_state = AppState { db: database };
 
     println!("🚀 Serveur lancé sur http://{}", server_address);
 
