@@ -1,0 +1,34 @@
+use actix_web::{web, App, HttpServer};
+use std::env;
+use dotenv::dotenv;
+
+// Déclaration des modules
+mod db;
+mod api;
+
+use db::AppState;
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    dotenv().ok(); 
+
+    // Configuration
+    let host = env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let port = env::var("SERVER_PORT").unwrap_or_else(|_| "8080".to_string());
+    let server_address = format!("{}:{}", host, port);
+
+    // Initialisation DB
+    let client = db::init().await?;
+    let app_state = AppState { db_client: client };
+
+    println!("🚀 Serveur lancé sur http://{}", server_address);
+
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(app_state.clone())) // Injection de dépendance
+            .configure(api::route::config)               // Configuration des routes via le module api
+    })
+    .bind(server_address)?
+    .run()
+    .await
+}
