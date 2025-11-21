@@ -179,3 +179,30 @@ pub async fn get_stats(data: web::Data<AppState>) -> impl Responder {
         Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
     }
 }
+
+
+#[post("/games/{id}/favorite")]
+pub async fn toggle_favorite(data: web::Data<AppState>, path: web::Path<String>) -> impl Responder {
+    let id_hex = path.into_inner();
+    let obj_id = match ObjectId::parse_str(&id_hex) {
+        Ok(oid) => oid,
+        Err(_) => return HttpResponse::BadRequest().body("ID invalide"),
+    };
+    let collection: Collection<JeuVideo> = data.db.collection("games");
+    let game = match collection.find_one(doc! {"_id": obj_id}).await {
+        Ok(Some(g)) => g,
+        Ok(None) => return HttpResponse::NotFound().body("Jeu introuvable"),
+        Err(e) => return HttpResponse::InternalServerError().json(e.to_string()),
+    };
+    let new_favorite_status = !game.favori;
+    match collection.update_one(
+        doc! {"_id": obj_id},
+        doc! {"$set": {"favori": new_favorite_status}}
+    ).await {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({
+            "message": "Statut favori mis à jour",
+            "favori": new_favorite_status
+        })),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
+    }
+}
