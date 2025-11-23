@@ -1,11 +1,12 @@
 use actix_web::{get, post, put, delete, web, HttpResponse, Responder};
 use crate::db::AppState;
-use crate::models::{JeuVideo, SearchParams, GameStats};
+use crate::models::{JeuVideo, SearchParams};
 use mongodb::{bson::doc, Collection};
 use mongodb::bson::oid::ObjectId;
 use mongodb::bson::to_document;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
+use validator::Validate;
 
 #[get("/health")]
 pub async fn health_check(data: web::Data<AppState>) -> impl Responder {
@@ -73,6 +74,13 @@ pub async fn update_game(
     path: web::Path<String>,
     body: web::Json<JeuVideo>
 ) -> impl Responder {
+    if let Err(e) = body.validate() {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "Validation failed",
+            "details": e // 'e' contient la liste précise des champs invalides
+        }));
+    }
+    
     let id_hex = path.into_inner();
     let obj_id = match ObjectId::parse_str(&id_hex) {
         Ok(oid) => oid,
@@ -120,6 +128,13 @@ pub async fn delete_game(data: web::Data<AppState>, path: web::Path<String>) -> 
 
 #[post("/games")]
 pub async fn create_game(data: web::Data<AppState>, body: web::Json<JeuVideo>) -> impl Responder {
+    if let Err(e) = body.validate() {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "Validation failed",
+            "details": e // 'e' contient la liste précise des champs invalides
+        }));
+    }
+
     let collection: Collection<JeuVideo> = data.db.collection("games");
     let mut new_game = body.into_inner();
     new_game.id = Some(ObjectId::new());
