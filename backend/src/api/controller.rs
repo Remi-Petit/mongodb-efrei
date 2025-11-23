@@ -208,9 +208,6 @@ pub async fn toggle_favorite(data: web::Data<AppState>, path: web::Path<String>)
 }
 
 
-
-use actix_web::http::header::ContentDisposition; // Nécessaire pour le téléchargement
-
 #[get("/games/export")]
 pub async fn export_games(data: web::Data<AppState>) -> impl Responder {
     let collection: Collection<JeuVideo> = data.db.collection("games");
