@@ -35,9 +35,6 @@ const platformOptions = computed(() => {
   return uniquePlatforms.map(p => ({ label: p, value: p }))
 })
 
-console.log(genresOptions);
-
-
 // 5. LE COEUR DU SYSTÈME : La liste filtrée (Computed)
 // C'est cette variable qu'on va afficher dans le template
 const filteredGames = computed(() => {
