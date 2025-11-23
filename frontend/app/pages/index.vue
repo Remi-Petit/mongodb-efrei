@@ -1,4 +1,19 @@
 <script setup lang="ts">
+const router = useRouter()
+
+// Fonction utilitaire pour récupérer l'ID proprement
+function getGameId(game: JeuVideo) {
+  return typeof game._id === 'object' && game._id.$oid ? game._id.$oid : game._id;
+}
+
+// Fonction de navigation
+function goToGame(game: JeuVideo) {
+  const id = getGameId(game);
+  if (id) {
+    router.push(`/games/${id}`)
+  }
+}
+
 // 1. Interface
 interface JeuVideo {
   _id?: any; // On met any pour accepter string ou { $oid: ... }
@@ -79,6 +94,28 @@ async function toggleFavorite(game: JeuVideo) {
     alert("Impossible de modifier le favori. Vérifiez que le serveur Rust tourne.");
   }
 }
+
+// 7. Fonction pour supprimer un jeu
+async function deleteGame(game: JeuVideo) {
+  const id = typeof game._id === 'object' && game._id.$oid ? game._id.$oid : game._id;
+  
+  if (!confirm(`Voulez-vous vraiment supprimer "${game.titre}" ?`)) return;
+
+  try {
+    await $fetch(`http://localhost:8080/api/games/${id}`, {
+      method: 'DELETE'
+    });
+
+    // On recharge la liste proprement
+    refresh();
+    
+    // Petit toast ou log
+    console.log("Jeu supprimé");
+  } catch (err) {
+    console.error("Erreur suppression", err);
+    alert("Erreur lors de la suppression.");
+  }
+}
 </script>
 
 <template>
@@ -153,7 +190,7 @@ async function toggleFavorite(game: JeuVideo) {
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
-        <NuxtCard v-for="game in filteredGames" :key="JSON.stringify(game._id) || game.titre" class="hover:ring-2 hover:ring-primary-500 transition-all cursor-pointer group">
+        <NuxtCard v-for="game in filteredGames" :key="JSON.stringify(game._id) || game.titre" class="hover:ring-2 hover:ring-primary-500 transition-all cursor-pointer group" @click="goToGame(game)">
           
           <template #header>
             <div class="flex justify-between items-start">
@@ -177,6 +214,11 @@ async function toggleFavorite(game: JeuVideo) {
               <div class="text-xs text-gray-500 truncate w-3/4">
                 {{ game.plateforme ? game.plateforme.join(', ') : '' }}
               </div>
+              <NuxtButton
+                  icon="i-heroicons-trash"
+                  variant="ghost"
+                  @click.stop="deleteGame(game)"
+                />
               <NuxtButton
                 :icon="game.favori ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'"
                 variant="ghost"

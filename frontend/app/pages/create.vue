@@ -128,12 +128,12 @@ async function submitGame() {
         </div>
       </div>
 
-      <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div class="flex flex-col">
-          <span class="text-sm font-medium">Jeu terminé ?</span>
-          <span class="text-xs text-gray-500">Marquer comme complété</span>
-        </div>
-        <NuxtToggle v-model="state.termine" />
+      <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <NuxtCheckbox 
+          v-model="state.termine" 
+          label="Jeu terminé ?" 
+          help="Cocher si vous avez fini l'histoire principale"
+        />
       </div>
 
       <div class="flex justify-end gap-3 pt-4">
