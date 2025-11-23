@@ -7,6 +7,21 @@ const routes = computed<NavigationMenuItem[]>(() => [
   { label: 'Accueil', to: '/', active: route.path === '/' },
   { label: 'About', to: '/about', active: route.path.startsWith('/about') },
 ])
+
+const exportLoading = ref(false)
+
+function downloadExport() {
+  exportLoading.value = true;
+  
+  // On redirige vers l'URL de l'API. 
+  // Comme le backend renvoie un fichier, le navigateur va lancer le téléchargement.
+  window.location.href = 'http://localhost:8080/api/games/export';
+
+  // On retire le chargement après 1 ou 2 secondes (juste pour l'effet visuel)
+  setTimeout(() => {
+    exportLoading.value = false;
+  }, 2000);
+}
 </script>
 
 <template>
@@ -23,6 +38,7 @@ const routes = computed<NavigationMenuItem[]>(() => [
     <!-- Zone droite -->
     <template #right>
       <NuxtColorModeButton />
+      <NuxtButton color="primary" icon="i-heroicons-arrow-down-tray" @click="downloadExport">Export</NuxtButton>
     </template>
     <template #body>
       <NuxtNavigationMenu :items="routes" orientation="vertical" />
