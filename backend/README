@@ -1,8 +1,0 @@
-# Initialiser un projet en Rust
-* cargo init
-
-# Lancer le projet
-* cargo run
-
-# Installer des dépendances
-* cargo add actix_web         (par exempe)
