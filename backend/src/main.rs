@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 use std::env;
 use dotenv::dotenv;
@@ -25,7 +26,13 @@ async fn main() -> std::io::Result<()> {
     println!("🚀 Serveur lancé sur http://{}", server_address);
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header();
+
         App::new()
+            .wrap(cors) // Ajout du middleware CORS
             .app_data(web::Data::new(app_state.clone())) // Injection de dépendance
             .configure(api::route::config)               // Configuration des routes via le module api
     })
