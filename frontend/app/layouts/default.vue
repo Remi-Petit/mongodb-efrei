@@ -5,7 +5,7 @@ const route = useRoute()
 
 const routes = computed<NavigationMenuItem[]>(() => [
   { label: 'Accueil', to: '/', active: route.path === '/' },
-  { label: 'About', to: '/about', active: route.path.startsWith('/about') },
+  { label: 'Stats', to: '/stats', active: route.path.startsWith('/stats') },
 ])
 
 const exportLoading = ref(false)
