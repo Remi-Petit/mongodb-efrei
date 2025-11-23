@@ -1,80 +1,28 @@
 ```markdown
-# 🎮 API Jeux Vidéo — Documentation complète (fichier unique)
+# 🎮 Documentation complète — API Jeux Vidéo (Rust + Actix Web + MongoDB)
 
-## Table des matières
-1. Aperçu
-2. Fichiers fournis
-3. Prérequis & variables d'environnement
-4. Démarrage
-5. Structure du projet
-6. Modèle de données (`JeuVideo`)
-7. Paramètres de recherche (`SearchParams`)
-8. Endpoints de l'API
-9. Validation côté serveur
-10. Erreurs & codes de réponse
-11. Exemples cURL
-12. Suggestions / fichiers manquants
-13. Notes techniques
+Ce document regroupe **toute la documentation complète**, entièrement en **Markdown**, prêt à être déposé sur GitHub.
 
 ---
 
-## Aperçu
-API REST écrite en **Rust** avec **Actix Web**, utilisant **MongoDB** pour la persistance des données. L'API permet :
-- CRUD complet sur les jeux vidéo
-- Recherche avancée via query params
-- Statistiques (agrégation MongoDB)
+## 📌 Aperçu
+API REST écrite en **Rust** utilisant :
+- **Actix Web** pour le serveur HTTP
+- **MongoDB** comme base de données NoSQL
+- **Validator** pour la validation des modèles
+- **Serde** pour la sérialisation JSON
+
+Fonctionnalités incluses :
+- CRUD complet
+- Recherche par query params
+- Statistiques (Agrégation MongoDB)
 - Export JSON
-- Marquer un jeu en "favori"
+- Gestion du statut « favori »
+- Champs automatiques de dates
 
 ---
 
-## Fichiers fournis
-- `main.rs` : point d'entrée du serveur
-- `db.rs` : initialisation MongoDB & AppState
-- `models.rs` : structures `JeuVideo` & `SearchParams`
-- `src/api/controller.rs` : logique des endpoints
-- `src/api/route.rs` : définition des routes
-- `src/api/mod.rs` : module API
-
----
-
-## Prérequis & variables d'environnement
-
-### Requis
-- Rust stable
-- Cargo
-- MongoDB
-- Un fichier `.env`
-
-### Exemple `.env`
-```
-SERVER_HOST=127.0.0.1
-SERVER_PORT=8080
-MONGODB_URI=mongodb://localhost:27017
-```
-
----
-
-## Démarrage
-
-### Installation
-```bash
-cargo build
-```
-
-### Lancement
-```bash
-cargo run
-```
-
-Serveur accessible sur :
-```
-http://127.0.0.1:8080/api
-```
-
----
-
-## Structure du projet
+## 📁 Structure du projet
 ```
 src/
  ├── main.rs
@@ -88,17 +36,34 @@ src/
 
 ---
 
-## Modèle de données — `JeuVideo`
-```rust\#[derive(Debug, Serialize, Deserialize, Validate)]
+## ⚙️ Prérequis & Configuration
+
+### Variables d'environnement (`.env`)
+```
+SERVER_HOST=127.0.0.1
+SERVER_PORT=8080
+MONGODB_URI=mongodb://localhost:27017
+```
+
+### Lancer le serveur
+```bash
+cargo run
+```
+
+---
+
+## 📘 Modèle : `JeuVideo`
+```rust
+#[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct JeuVideo {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
 
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, message = "Le titre ne peut pas être vide"))]
     pub titre: String,
 
     #[serde(default)]
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, message = "Il faut au moins un genre"))]
     pub genre: Vec<String>,
 
     #[serde(default)]
@@ -108,139 +73,209 @@ pub struct JeuVideo {
     pub developpeur: Option<String>,
 
     #[serde(default)]
-    #[validate(range(min = 1950))]
+    #[validate(range(min = 1950, message = "L'année doit être supérieure à 1950"))]
     pub annee_sortie: Option<i32>,
 
     #[serde(default)]
-    #[validate(range(min = 0, max = 100))]
+    #[validate(range(min = 0, max = 100, message = "Le score doit être entre 0 et 100"))]
     pub metacritic_score: Option<i32>,
 
-    #[serde(default)]
-    #[validate(range(min = 0.0))]
-    pub temps_de_jeu: Option<f32>,
+    #[validate(range(min = 0.0, message = "Le temps de jeu ne peut pas être négatif"))]
+    pub temps_jeu_heures: Option<f64>,
 
     #[serde(default)]
-    pub date_ajout: Option<DateTime>,
+    pub termine: bool,
 
     #[serde(default)]
-    pub favoris: bool,
+    pub date_ajout: String,
 
     #[serde(default)]
-    pub description: Option<String>,
+    pub date_modification: String,
+
+    #[serde(default)]
+    pub favori: bool,
 }
 ```
 
 ---
 
-## Paramètres de recherche — `SearchParams`
+## 🔍 Paramètres de recherche : `SearchParams`
 ```rust
 pub struct SearchParams {
-    pub titre: Option<String>,
     pub genre: Option<String>,
     pub plateforme: Option<String>,
-    pub editeur: Option<String>,
-    pub developpeur: Option<String>,
-    pub annee_min: Option<i32>,
-    pub annee_max: Option<i32>,
-    pub score_min: Option<i32>,
-    pub score_max: Option<i32>,
-    pub favoris: Option<bool>,
+    pub titre: Option<String>,
 }
 ```
 
 ---
 
-## Endpoints de l'API
+# 🛠️ Endpoints — Documentation complète
 
-### 🟢 Healthcheck
+## 🔥 1. Healthcheck
 ```
 GET /api/health
 ```
 Réponse :
 ```json
-{"status":"ok"}
-```
-
-### 🔍 Liste des jeux
-```
-GET /api/games
-```
-Query params disponibles : titre, genre, editeur, developpeur, annee_min, annee_max, score_min, score_max, favoris.
-
-### 📘 Récupérer un jeu
-```
-GET /api/games/{id}
-```
-
-### ➕ Créer un jeu
-```
-POST /api/games
-```
-Body JSON :
-```json
 {
-  "titre": "Zelda BOTW",
-  "genre": ["Aventure"],
-  "plateforme": ["Switch"],
-  "annee_sortie": 2017
+  "status": "up",
+  "database": "connected"
 }
 ```
 
-### ✏️ Mettre à jour un jeu
+---
+
+## 📜 2. Récupérer tous les jeux
+```
+GET /api/games
+```
+### Query params disponibles
+| Paramètre | Exemple | Description |
+|----------|---------|-------------|
+| `titre` | `?titre=zelda` | Recherche floue
+| `genre` | `?genre=Indie` | Filtrer par genre
+| `plateforme` | `?plateforme=PC` | Filtrer par plateforme |
+
+### Exemple
+```bash
+curl "http://localhost:8080/api/games?titre=celeste&genre=Indie"
+```
+
+---
+
+## 📘 3. Récupérer un jeu par ID
+```
+GET /api/games/{id}
+```
+Exemple :
+```bash
+curl http://localhost:8080/api/games/6920c751d63b5f5c333bdef1
+```
+
+---
+
+## ➕ 4. Ajouter un jeu
+```
+POST /api/games
+```
+### Exemple de body JSON
+```json
+{
+  "titre": "Celeste",
+  "genre": ["Platformer", "Indie"],
+  "plateforme": ["PC", "Switch", "PS4", "Xbox One"],
+  "editeur": "Matt Makes Games",
+  "developpeur": "Maddy Makes Games",
+  "annee_sortie": 2018,
+  "metacritic_score": 92,
+  "temps_jeu_heures": 18,
+  "termine": true,
+  "date_ajout": "2024-02-10T12:00:00.000Z",
+  "date_modification": "2024-02-10T12:00:00.000Z"
+}
+```
+
+### Exemple cURL
+```bash
+curl -X POST http://localhost:8080/api/games \ 
+  -H "Content-Type: application/json" \ 
+  -d @game.json
+```
+
+---
+
+## ✏️ 5. Mettre à jour un jeu
 ```
 PUT /api/games/{id}
 ```
+### Exemple de body JSON
+```json
+{
+  "titre": "Celeste",
+  "genre": ["Platformer", "Indie"],
+  "plateforme": ["PC", "Switch", "PS4", "Xbox One"],
+  "editeur": "Matt Makes Games",
+  "developpeur": "Maddy Makes Games",
+  "annee_sortie": 2018,
+  "metacritic_score": 92,
+  "temps_jeu_heures": 19.0,
+  "termine": true,
+  "date_ajout": "2024-02-10T12:00:00.000Z",
+  "date_modification": "2024-02-10T12:00:00.000Z"
+}
+```
 
-### 🗑️ Supprimer un jeu
+### Exemple cURL
+```bash
+curl -X PUT http://localhost:8080/api/games/6920c751d63b5f5c333bdef1 \ 
+  -H "Content-Type: application/json" \ 
+  -d @update.json
+```
+
+---
+
+## 🗑️ 6. Supprimer un jeu
 ```
 DELETE /api/games/{id}
 ```
+Exemple :
+```bash
+curl -X DELETE http://localhost:8080/api/games/6920c751d63b5f5c333bdef1
+```
 
-### ⭐ Basculer favori
+---
+
+## ⭐ 7. Activer/Désactiver le favori
 ```
 POST /api/games/{id}/favorite
 ```
+Réponse :
+```json
+{
+  "message": "Statut favori mis à jour",
+  "favori": true
+}
+```
 
-### 📊 Statistiques
+---
+
+## 📊 8. Statistiques
 ```
 GET /api/stats
 ```
-Retourne par exemple :
-- nombre total de jeux
-- répartition par genre
-- moyenne des scores
+### Exemple de réponse
+```json
+{
+  "total_jeux": 42,
+  "temps_total_heures": 527.5,
+  "jeux_termines": 18,
+  "score_moyen": 81.4
+}
+```
 
-### 📤 Export JSON
+---
+
+## 📤 9. Export JSON
 ```
 GET /api/games/export
 ```
-Retourne un fichier JSON téléchargeable.
+Télécharge un fichier : `games_export.json`
 
 ---
 
-## Validation
-Utilise `validator` crate :
-- titres non vides
-- genres non vides
-- années ≥ 1950
-- scores 0–100
-- temps de jeu ≥ 0
-
----
-
-## Erreurs & codes de réponse
+# ❗ Gestion des erreurs
 | Code | Signification |
 |------|--------------|
 | 200 | OK |
 | 201 | Créé |
-| 400 | Requête invalide |
-| 404 | Non trouvé |
-| 500 | Erreur serveur |
+| 400 | Erreur de validation |
+| 404 | Ressource introuvable |
+| 500 | Erreur interne |
 
 ---
 
-## Exemples cURL
-
+# 🧪 Exemples rapides cURL
 ### Ajouter un jeu
 ```bash
 curl -X POST http://localhost:8080/api/games \
@@ -250,29 +285,15 @@ curl -X POST http://localhost:8080/api/games \
 
 ### Filtrer
 ```bash
-curl "http://localhost:8080/api/games?titre=zelda&score_min=80"
-```
-
-### Supprimer
-```bash
-curl -X DELETE http://localhost:8080/api/games/ID
+curl "http://localhost:8080/api/games?genre=RPG&titre=witcher"
 ```
 
 ---
 
-## Suggestions / fichiers manquants
-- `Cargo.toml` complet
-- `.env.example`
-- Tests unitaires
-- Middleware logging
-- Documentation OpenAPI/Swagger
-
----
-
-## Notes techniques
-- MongoDB utilisé en mode async
-- Actix Web 4.x
-- Validation automatique via `Validate`
+# 📌 Notes
+- API totalement asynchrone
+- MongoDB utilisé avec `TryStreamExt` et agrégations
+- Respect strict du schéma via `validator`
 
 ```
 
