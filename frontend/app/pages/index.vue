@@ -127,7 +127,6 @@ async function toggleFavorite(game: JeuVideo) {
           <NuxtInput 
             v-model="search"
             icon="i-heroicons-magnifying-glass-20-solid"
-            color="white"
             trailing
             placeholder="Rechercher..."
             class="w-full sm:w-60"
@@ -143,7 +142,7 @@ async function toggleFavorite(game: JeuVideo) {
       <div v-else-if="status === 'error'" class="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg text-center border border-red-200 dark:border-red-800">
         <h3 class="text-lg font-bold text-red-600 dark:text-red-400">Erreur</h3>
         <p class="text-sm mb-4">Impossible de charger les jeux.</p>
-        <NuxtButton color="red" variant="soft" @click="refresh()">Réessayer</NuxtButton>
+        <NuxtButton variant="soft" @click="refresh()">Réessayer</NuxtButton>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -152,7 +151,7 @@ async function toggleFavorite(game: JeuVideo) {
           
           <template #header>
             <div class="flex justify-between items-start">
-              <NuxtBadge v-if="game.metacritic_score" :color="game.metacritic_score > 90 ? 'green' : 'orange'">
+              <NuxtBadge v-if="game.metacritic_score">
                 {{ game.metacritic_score }}
               </NuxtBadge>
               <span class="text-xs text-gray-500 font-mono">{{ game.annee_sortie }}</span>
@@ -162,7 +161,7 @@ async function toggleFavorite(game: JeuVideo) {
           <h3 class="text-xl font-bold mb-2 group-hover:text-primary-500 transition-colors">{{ game.titre }}</h3>
           
           <div class="flex flex-wrap gap-1 mb-4">
-            <NuxtBadge v-for="g in game.genre" :key="g" color="gray" variant="subtle" size="xs">
+            <NuxtBadge v-for="g in game.genre" :key="g" variant="subtle" size="xs">
               {{ g }}
             </NuxtBadge>
           </div>
