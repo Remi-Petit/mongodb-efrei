@@ -23,7 +23,6 @@ const routes = computed<NavigationMenuItem[]>(() => [
     <!-- Zone droite -->
     <template #right>
       <NuxtColorModeButton />
-      <NuxtButton color="primary" to="/contact" icon="i-lucide-mail">Contact</NuxtButton>
     </template>
     <template #body>
       <NuxtNavigationMenu :items="routes" orientation="vertical" />

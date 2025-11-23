@@ -134,6 +134,12 @@ async function toggleFavorite(game: JeuVideo) {
         </div>
       </div>
 
+      <NuxtButton to="/create" icon="i-heroicons-plus" class="ml-4">
+        Nouveau
+      </NuxtButton>
+
+      <br></br><br></br>
+
       <div v-if="status === 'pending'" class="flex flex-col items-center justify-center py-20">
         <NuxtIcon name="i-heroicons-arrow-path" class="w-10 h-10 animate-spin text-primary-500 mb-4" />
         <p class="text-gray-500">Récupération des données...</p>
@@ -196,7 +202,6 @@ async function toggleFavorite(game: JeuVideo) {
           Réinitialiser les filtres
         </NuxtButton>
       </div>
-
     </NuxtContainer>
   </div>
 </template>
