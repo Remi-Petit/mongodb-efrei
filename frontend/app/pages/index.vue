@@ -7,6 +7,7 @@ interface JeuVideo {
   plateforme: string[];
   metacritic_score?: number;
   annee_sortie?: number;
+  favori?: boolean;
 }
 
 // 2. Variables de sélection (Inputs utilisateur)
@@ -54,6 +55,30 @@ const filteredGames = computed(() => {
     return matchTitle && matchGenre && matchPlatform
   })
 })
+
+// 6. Fonction pour gérer le clic sur le cœur
+async function toggleFavorite(game: JeuVideo) {
+  const id = typeof game._id === 'object' && game._id.$oid ? game._id.$oid : game._id;
+  if (!id) return console.error("ID du jeu introuvable");
+  try {
+    const response = await $fetch<{ favori: boolean }>(`http://localhost:8080/api/games/${id}/favorite`, {
+      method: 'POST'
+    });
+    
+    // 1. Mettre à jour la propriété localement
+    game.favori = response.favori; 
+    
+    // 2. Forcer la réactivité de Vue en créant une nouvelle référence de tableau
+    if (allGames.value) {
+        allGames.value = [...allGames.value]; 
+    }
+    
+    console.log("Nouveau statut favori :", response.favori);
+  } catch (err) {
+    console.error("Erreur lors du changement de favori", err);
+    alert("Impossible de modifier le favori. Vérifiez que le serveur Rust tourne.");
+  }
+}
 </script>
 
 <template>
@@ -147,7 +172,12 @@ const filteredGames = computed(() => {
               <div class="text-xs text-gray-500 truncate w-3/4">
                 {{ game.plateforme ? game.plateforme.join(', ') : '' }}
               </div>
-              <NuxtButton icon="i-heroicons-heart" variant="ghost" color="gray" />
+              <NuxtButton
+                :icon="game.favori ? 'i-heroicons-heart-20-solid' : 'i-heroicons-heart'"
+                variant="ghost"
+                :class="{ 'text-red-500': game.favori, 'text-gray-500': !game.favori }"
+                @click.stop="toggleFavorite(game)"
+              />
             </div>
           </template>
         </NuxtCard>
